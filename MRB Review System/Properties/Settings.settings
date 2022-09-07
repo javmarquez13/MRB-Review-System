@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MRB_Review_System.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MRB_Review_System_MES_Service" Type="(Web Service URL)" Scope="Application">
+      <Value Profile="(Default)">http://mxchim0mestis10/wsMES/Mes.asmx</Value>
+    </Setting>
+    <Setting Name="MRB_Review_System_MES_TIS_MES_TIS" Type="(Web Service URL)" Scope="Application">
+      <Value Profile="(Default)">http://mxchim0mestis07/MES-TIS/TIS.asmx</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
