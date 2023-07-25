@@ -19,154 +19,23 @@
 
     <Window.Resources>
         <Style TargetType="{x:Type DataGridRow}">
-            <Setter Property="Height" Value="60"/>
+            <Setter Property="Height" Value="30"/>
             <!--<Setter Property="HorizontalContentAlignment" Value="Center" />-->
         </Style>
 
         <Style TargetType="{x:Type DataGridCell}">
-            <Setter Property="Height" Value="60"/>
+            <Setter Property="Height" Value="25"/>
             <!--<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch" />-->
         </Style>
-
-
-
-
-
     </Window.Resources>
 
 
+    <Border BorderThickness="7" BorderBrush="white" CornerRadius="10" Margin="0,0,0,0">
+        <Grid Background="White" MouseDown="Grid_MouseDown" Margin="0,0,0,0">
 
-
-
-
-    <Border BorderThickness="10" BorderBrush="WhiteSmoke" CornerRadius="10" Margin="0,0,-0.2,0.6">
-        <Grid Background="WhiteSmoke" MouseDown="Grid_MouseDown" Margin="0,0,0,0.333">
-            <Label x:Name="lblVersion"
-                Content="v1.0.0.0"
-                Width="126" Height="31" 
-                FontSize="12"
-                FontWeight="Normal" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Background="Transparent"
-                Foreground="Black" Margin="729,0,203,724.667"/>
-
-
-
-            <Label x:Name="lblTitle"
-                Content="MRB Review System"
-                Width="386" Height="65" 
-                FontSize="16"
-                FontWeight="Normal" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Background="#212121"
-                Style="{DynamicResource RoundLabel}"
-                Foreground="WhiteSmoke" 
-                Margin="335,-3,337,693.667"
-                MouseDoubleClick="lblTitle_MouseDoubleClick"/>
-
-            <Label x:Name="lblEscaneaSN"
-                Content="Escanea QR de tablilla:"
-                Width="170" Height="31" 
-                FontSize="14"
-                FontWeight="Normal" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Background="Transparent"
-                Foreground="Black" Margin="308,105,580,619.667">
-            </Label>
-
-            <TextBox x:Name="txtBoxScan"   
-                     HorizontalAlignment="Center" 
-                     VerticalAlignment="Center" 
-                     VerticalContentAlignment="Center"
-                     HorizontalContentAlignment="Center"
-                     Height="39" Width="455"
-                     TextWrapping="Wrap"
-                     FontSize="20"
-                     Background="GhostWhite" Margin="308,141,295,575.667"
-                     KeyDown="txtBoxScan_KeyDown">
-            </TextBox>
-
-            <Button x:Name="btnExit"
-                    Style="{DynamicResource RoundButton}"
-                    Content="X"
-                    FontSize="14"
-                    Background="#D32F2F"
-                    Foreground="WhiteSmoke"
-                    BorderBrush="Transparent"
-                    HorizontalAlignment="Center"
-                    Margin="1015,-2,-2,727.667" 
-                    VerticalAlignment="Center" 
-                    Width="45" 
-                    Height="30"
-                    Click="btnExit_Click">
-            </Button>
-
-            <Button x:Name="btnMinimize"
-                    Style="{DynamicResource RoundButton}"
-                    Content="_"
-                    FontSize="14"
-                    Background="#CFD8DC"
-                    BorderBrush="Transparent"
-                    HorizontalAlignment="Center"
-                    Margin="967,-2,46,727.667" 
-                    VerticalAlignment="Center" 
-                    Width="45" 
-                    Height="30"
-                    Click="btnMinimize_Click">
-            </Button>
-
-
-
-
-            <Button x:Name="btnTrigger"
-                Style="{DynamicResource RoundButton}"
-                Content="Escanear"
-                FontSize="14"
-                BorderBrush="Transparent"
-                HorizontalAlignment="Center"
-                Margin="615,193,311,531.667" 
-                VerticalAlignment="Center" 
-                Width="132" 
-                Height="31"
-                IsEnabled="False"              
-                Click="btnTrigger_Click"/>
-
-
-            <DockPanel 
-                x:Name="DockMenu"
-                Style="{DynamicResource RoundDock}"
-                HorizontalAlignment="Left"  
-                Background="#37474F"
-                LastChildFill="False" 
-                VerticalAlignment="Stretch" 
-                Width="158" Margin="-11,-11,0,-11.533" RenderTransformOrigin="0.5,0.5"/>
-
-            <Label x:Name="lblUnitsScanned"
-                Content="Units Scanned:"
-                Width="150" Height="31" 
-                FontSize="14"                  
-                FontWeight="Normal" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                HorizontalContentAlignment="Left"
-                VerticalContentAlignment="Center"
-                Background="Transparent"
-                MouseDoubleClick="lblHistory_MouseDoubleClick"
-                Foreground="#263238" Margin="155,229,754.2,496.467"/>
-
-            <DataGrid x:Name="dgvData"                                          
-                      Height="488" 
-                      Margin="0,266,0,1.667"
+            <DataGrid x:Name="dgvData" 
+                      Margin="0,301,0,2"
                       BorderBrush="#616161" BorderThickness="2"
                       SelectionMode="Single"
                       Background="WhiteSmoke"
@@ -183,19 +52,141 @@
 
 
 
-            <Button x:Name="btnMenu"
+            <Label x:Name="lblVersion"
+                Style="{DynamicResource RoundLabelTop}"
+                Content="v1.0.0.0"
+                Width="148" Height="37" 
+                FontSize="14"
+                FontWeight="Normal" 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Background="#263250"
+                Foreground="White" Margin="830,-7,0,0"/>
+
+
+            <Label x:Name="lblTitle" Height="50" Width="457" Background="#263250" Margin="0,34,0,0" FontSize="21"
+                   FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                   Style="{DynamicResource RoundLabel}" VerticalAlignment="Top" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+
+                    <Ellipse Height="26" Width="30" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,0">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="Resources/App ico.ico"/>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <TextBlock Text="MRB REVIEW SYSTEM" Foreground="WhiteSmoke" VerticalAlignment="Center" Width="292"/>
+                </StackPanel>
+            </Label>
+
+
+
+            <Label x:Name="lblLane1_Copy2"
+                Content="UNIT SCANNED:"
+                Width="174" Height="40" 
+                FontSize="10"
+                FontWeight="Normal" 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Background="Black"
+                Style="{DynamicResource RoundLabel}"
+                Foreground="WhiteSmoke" Margin="2,252,0,0"/>
+
+
+            <TextBox x:Name="txtBoxScan"   
+                     HorizontalAlignment="Left" 
+                     VerticalAlignment="Top" 
+                     VerticalContentAlignment="Center"
+                     HorizontalContentAlignment="Center"
+                     Height="39" Width="455"
+                     TextWrapping="Wrap"
+                     FontSize="20"
+                     Background="GhostWhite" Margin="308,182,0,0"
+                     KeyDown="txtBoxScan_KeyDown"/>
+
+            <Button x:Name="btnMinimize"
+                    Content="_"
+                    FontSize="14"
+                    Background="White"
+                    BorderBrush="Transparent"
+                    HorizontalAlignment="Right"
+                    Margin="0,-7,34,0" 
+                    VerticalAlignment="Top" 
+                    Width="45" 
+                    Height="22"
+                    Click="btnMinimize_Click"/>
+
+
+
+
+            <Button x:Name="btnTrigger"
                 Style="{DynamicResource RoundButton}"
-                Content="MENU"
+                Content="Escanear"
+                FontSize="14"
+                BorderBrush="Transparent"
+                HorizontalAlignment="Left"
+                Margin="631,256,0,0" 
+                VerticalAlignment="Top" 
+                Width="132" 
+                Height="32"
+                IsEnabled="False"              
+                Click="btnTrigger_Click"/>
+
+
+            <Label x:Name="DockMenu"
+                Content="" 
+                Background="#263238"
+                Style="{DynamicResource RoundLabel}"
+                Foreground="WhiteSmoke" 
+                Width="0"
+                Height="758"
+                HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+
+
+
+            <!--<DockPanel 
+                x:Name="DockMenu"
+                Style="{DynamicResource RoundDock}"
+                HorizontalAlignment="Left"  
+                Background="#37474F"
+                LastChildFill="False" 
+                VerticalAlignment="Stretch" 
+                Width="158" Margin="-11,-11,0,-11.533" RenderTransformOrigin="0.5,0.5"/>-->
+
+
+            <Label x:Name="lblUnitsScanned"
+                Content="UNIT SCANNED:"
+                Width="100" Height="40" 
+                FontSize="10"
+                FontWeight="Normal" 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Background="Black"
+                Style="{DynamicResource RoundLabel}"
+                Foreground="WhiteSmoke" Margin="308,129,0,0"/>
+
+
+
+
+            <Button x:Name="btnMenu"
+                Style="{DynamicResource TopButton}"
+                Content="M"
                 FontSize="14"
                 Foreground="WhiteSmoke"
                 BorderThickness=".5"             
                 BorderBrush="Transparent"
                 Background="#212121"
-                HorizontalAlignment="Center"
-                Margin="1,-2,922.2,697.467" 
-                VerticalAlignment="Center" 
-                Width="136" 
-                Height="61"
+                Margin="2,2,0,0" 
+                VerticalAlignment="Top" 
+                Width="28" 
+                Height="26"
                 Click="btnMenu_Click"/>
 
 
@@ -207,11 +198,12 @@
                 BorderBrush="Transparent"
                 Foreground="WhiteSmoke"
                 Background="#212121"
-                HorizontalAlignment="Center"
-                Margin="2,71,921.2,645.467" 
-                VerticalAlignment="Center" 
+                HorizontalAlignment="Left"
+                Margin="22,44,0,0" 
+                VerticalAlignment="Top" 
                 Width="136" 
                 Height="40"
+                Visibility="Hidden"
                 Click="btnGetData_Click"/>
 
             <Button x:Name="btnCelanExcel"
@@ -222,13 +214,14 @@
                 BorderBrush="Transparent"
                 Foreground="WhiteSmoke"
                 Background="#212121"
-                HorizontalAlignment="Center"
-                Margin="1,717,921.2,-0.533" 
-                VerticalAlignment="Center" 
+                HorizontalAlignment="Left"
+                Margin="20,702,0,0" 
+                VerticalAlignment="Top" 
                 Width="137" 
                 Height="40"
+                Visibility="Hidden"
                 Click="btnCelanExcel_Click"/>
-            
+
             <Button x:Name="btnGetDataAll"
                 Style="{DynamicResource RoundButton}"
                 Content="Query All Data"
@@ -237,12 +230,58 @@
                 BorderBrush="Transparent"
                 Foreground="WhiteSmoke"
                 Background="#212121"
-                HorizontalAlignment="Center"
-                Margin="1,123,921.2,593.467" 
-                VerticalAlignment="Center" 
+                HorizontalAlignment="Left"
+                Margin="21,95,0,0" 
+                VerticalAlignment="Top" 
                 Width="137" 
                 Height="40"
+                Visibility="Hidden"
                 Click="btnGetDataAll_Click"/>
+
+            <Button x:Name="btnFromFile"
+                Style="{DynamicResource RoundButton}"
+                Content="IMPORT FILE"
+                FontSize="14"
+                BorderThickness=".5"
+                BorderBrush="Transparent"
+                Foreground="WhiteSmoke"
+                Background="#212121"
+                HorizontalAlignment="Left"
+                Margin="21,146,0,0" 
+                VerticalAlignment="Top" 
+                Width="137" 
+                Height="40"
+                Visibility="Hidden"
+                Click="btnFromFile_Click"/>
+
+            <Button x:Name="btnExit"
+                    Style="{DynamicResource RoundExitButton}"
+                    Content="X"
+                    FontSize="14"
+                    Background="#D32F2F"
+                    Foreground="WhiteSmoke"
+                    BorderBrush="Transparent"
+                    HorizontalAlignment="Right"
+                    Margin="0,-8,-8,0" 
+                    VerticalAlignment="Top" 
+                    Width="43" 
+                    Height="24"
+                    Click="btnExit_Click"/>
+
+
+            <ProgressBar x:Name="ProBarTask" 
+                         Minimum="0" 
+                         Maximum="0" 
+                         Value="75" 
+                         VerticalAlignment="Top"
+                         HorizontalAlignment="Left"
+                         Width="453"
+                      
+                         Height="15" Margin="308,233,0,0"
+                         Visibility="Hidden">
+
+            </ProgressBar>
+
         </Grid>
     </Border>
 </Window>

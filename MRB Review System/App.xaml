@@ -4,8 +4,6 @@
              xmlns:local="clr-namespace:MRB_Review_System"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-
-
         <Style TargetType="Label" x:Key="RoundLabel">
             <Style.Resources>
                 <Style TargetType="Border">
@@ -22,13 +20,79 @@
             </Style.Resources>
         </Style>
 
+        <Style TargetType="Button" x:Key="RoundExitButton">
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="0,10,0,0" />
+                </Style>
+            </Style.Resources>
+        </Style>
 
-        <Style TargetType="DockPanel" x:Key="RoundDock">
+        <Style x:Key="TopButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#6e7783"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="50">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#dcdcdc"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#455A64" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="35"/>
+
+            <!-- Add any other desired formatting properties -->
             <Style.Resources>
                 <Style TargetType="Border">
                     <Setter Property="CornerRadius" Value="10" />
                 </Style>
             </Style.Resources>
         </Style>
+
+
+        <Style x:Key="ButtonStyleSlot" TargetType="Button">
+            <Setter Property="Background" Value="#455A64" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="2"/>
+
+            <!-- Add any other desired formatting properties -->
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="10" />
+                </Style>
+            </Style.Resources>
+        </Style>
+
+
+        <Style TargetType="{x:Type Label}" x:Key="RoundLabelTop">
+            <Style.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="CornerRadius" Value="0,0,7,7" />
+                </Style>
+            </Style.Resources>
+        </Style>
+
+     
     </Application.Resources>
 </Application>

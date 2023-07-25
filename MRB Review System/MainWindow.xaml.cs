@@ -18,6 +18,8 @@ using System.Windows.Threading;
 using System.IO;
 using System.Deployment.Application;
 using System.Threading;
+using System.Net.NetworkInformation;
+using System.Windows.Markup;
 
 namespace MRB_Review_System
 {
@@ -76,6 +78,7 @@ namespace MRB_Review_System
             btnGetData.Visibility = Visibility.Hidden;
             btnGetDataAll.Visibility = Visibility.Hidden;
             btnCelanExcel.Visibility = Visibility.Hidden;
+            btnFromFile.Visibility = Visibility.Hidden;
 
             try
             {
@@ -137,7 +140,7 @@ namespace MRB_Review_System
             DataGridTextColumn PROCESS = new DataGridTextColumn();
             PROCESS.Header = "PROCESS";
             PROCESS.Binding = new Binding("PROCESS");
-            PROCESS.Width = 370;
+            PROCESS.Width = 300;
             PROCESS.IsReadOnly = true;
 
             DataGridTextColumn DEFECT = new DataGridTextColumn();
@@ -167,7 +170,7 @@ namespace MRB_Review_System
             dgvData.Columns.Add(STATUS);
         }
 
-        private void txtBoxScan_KeyDown(object sender, KeyEventArgs e)
+        private async void txtBoxScan_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -177,10 +180,9 @@ namespace MRB_Review_System
 
                 if (Globals.SERIAL_NUMBER.Length == 16) 
                 {
-                    Task.Factory.StartNew(() => MainFunction());              
-                    //ThreadStart ts1 = new ThreadStart(MainFunction);
-                    //Thread t1 = new Thread(ts1);
-                    //t1.Start();
+                    Task<string> _taskMainFunction = new Task<string>(MainFunction3);
+                    _taskMainFunction.Start();
+                    string result = await _taskMainFunction;
 
                     txtBoxScan.Focus();
                     txtBoxScan.Clear();
@@ -199,19 +201,21 @@ namespace MRB_Review_System
                 Globals.PREVIOUS_SN = Globals.SERIAL_NUMBER;
                 this.Dispatcher.BeginInvoke(new Action(() => {txtBoxScan.Text = Globals.SERIAL_NUMBER; }));
                 Task.Factory.StartNew(() => MainFunction());    
-                this.Dispatcher.BeginInvoke(new Action(() => { lblUnitsScanned.Content = "Units Scanned: " + Globals.QTY_UNITS_SCANNED; }));
+                this.Dispatcher.BeginInvoke(new Action(() => { lblUnitsScanned.Content = "UNIT SCANNED: " + Globals.QTY_UNITS_SCANNED; }));
             }
         }
 
-        void MainFunction()
+        string MainFunction()
         {
+            Globals.BUSY = true;
+
             if(StaticFunctions.IsAlreadyRegister()) 
             {
                 Thread.Sleep(3000);
                 WriteDgv(DateTime.Now, Globals.SERIAL_NUMBER, "UNIDAD YA REGISTRADA", "", "", ""); 
                 StaticFunctions.NotifyError();
                 CleanUP();
-                return;
+                return "OK";
             }
 
             DataSet _dsQuery = new MES.Service().SelectBySerialNumber(Globals.SERIAL_NUMBER);
@@ -219,11 +223,9 @@ namespace MRB_Review_System
             if (_dsQuery.Tables[0].Rows.Count > 1) goto Skip;
 
             Globals.CUSTOMER_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][2]);
-
             Globals.WIP_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][0]);
 
             _dsQuery = new MES.Service().BoardHistoryReport(Globals.SERIAL_NUMBER, Globals.CUSTOMER_ID);
-
 
             foreach (DataRow _dr in _dsQuery.Tables[0].Rows)
             {
@@ -291,7 +293,7 @@ namespace MRB_Review_System
                     StaticFunctions.NotifyOK();
                     CleanUP();
                     this.Dispatcher.BeginInvoke(new Action(() => { lblUnitsScanned.Content = "Units Scanned: " + Globals.QTY_UNITS_SCANNED; }));
-                    return;
+                    return "OK";
                 }
                 if(string.IsNullOrEmpty(Globals.STEPS_MISSING) && Globals.COUNT_MATRIX == 16) 
                 {
@@ -301,7 +303,7 @@ namespace MRB_Review_System
                     StaticFunctions.NotifyOK();
                     CleanUP();
                     this.Dispatcher.BeginInvoke(new Action(() => { lblUnitsScanned.Content = "Units Scanned: " + Globals.QTY_UNITS_SCANNED; }));
-                    return;
+                    return "OK";
                 }
             }
 
@@ -313,8 +315,251 @@ namespace MRB_Review_System
         Skip: { }
 
             CleanUP();
+
+            return "OK";
         }
-    
+
+
+
+
+
+        string MainFunction2()
+        {
+            Globals.BUSY = true;
+
+            if (StaticFunctions.IsAlreadyRegister())
+            {
+                Thread.Sleep(3000);
+                WriteDgv(DateTime.Now, Globals.SERIAL_NUMBER, "UNIDAD YA REGISTRADA", "", "", "");
+                //StaticFunctions.NotifyError();
+                CleanUP();
+                return "OK";
+            }
+
+            DataSet _dsQuery = new MES.Service().SelectBySerialNumber(Globals.SERIAL_NUMBER);
+
+            //if (_dsQuery.Tables[0].Rows.Count > 1) goto Skip;
+
+            Globals.CUSTOMER_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][2]);
+            Globals.WIP_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][0]);
+
+            _dsQuery = new MES.Service().BoardHistoryReport(Globals.SERIAL_NUMBER, Globals.CUSTOMER_ID);
+
+            DataTable EventsByStepMatrix1 = new DataTable();
+
+            foreach (string _Key in Globals.DATA_MATRIX)
+            {
+                string StepToCheck = ConfigFiles.reader("DATA_MATRIX", _Key, Globals.CONFIG_FILE);
+
+                try
+                {
+                    EventsByStepMatrix1 = _dsQuery.Tables[0].AsEnumerable()
+                                                              .Where(r => r.Field<string>("TestType") == "TEST" &&
+                                                                          r.Field<string>("Test_Process") == StepToCheck &&
+                                                                          r.Field<string>("TestStatus") == "Pass")
+                                                              .CopyToDataTable();
+
+                    goto NEXT_PROCESS;
+                }
+                catch (Exception ex) { }
+
+
+                try
+                {
+                    if(StepToCheck.Contains("QC") || StepToCheck.Contains("LINK-TXSN")) 
+                    {
+                        EventsByStepMatrix1 = _dsQuery.Tables[0].AsEnumerable()
+                                               .Where(r => r.Field<string>("TestType") == "Movement Both" &&
+                                                           r.Field<string>("Test_Process") == StepToCheck &&
+                                                           r.Field<string>("TestStatus") == "Pass")
+                                               .CopyToDataTable();
+                        goto NEXT_PROCESS;
+                    }              
+                }
+
+                catch (Exception ex) 
+                {
+                    Globals.PROCESS = StepToCheck;
+                    Globals.STATUS = "MISSING PROCESS";
+                    Globals.DEFECT = "MISSING PROCESS";
+                    Globals.CRD = "MISSING PROCESS";
+
+                    StaticFunctions.RegisterUnit();
+                    goto End;
+                }           
+
+                try
+                {
+
+                    if (StepToCheck == "AOI / AOIB") StepToCheck = "AOI / AOIINSPB";
+
+                    EventsByStepMatrix1 = _dsQuery.Tables[0].AsEnumerable()
+                                                              .Where(r => r.Field<string>("TestType") == "TEST" &&
+                                                                          r.Field<string>("Test_Process") == StepToCheck &&
+                                                                          r.Field<string>("TestStatus") == "Fail")
+                                                              .CopyToDataTable();
+
+
+                    EventsByStepMatrix1 = _dsQuery.Tables[0].AsEnumerable()
+                                                        .Where(r => r.Field<string>("TestType") == "Analysis" &&
+                                                                    r.Field<string>("Test_Process") == StepToCheck &&
+                                                                    r.Field<string>("TestStatus") == "Confirmed" || r.Field<string>("TestStatus") == "Unconfirmed")
+                                                        .CopyToDataTable();
+
+                    Globals.PROCESS = EventsByStepMatrix1.Rows[0][9].ToString();
+                    Globals.STATUS = EventsByStepMatrix1.Rows[0][10].ToString();
+                    Globals.DEFECT = EventsByStepMatrix1.Rows[0][19].ToString();
+                    Globals.CRD = EventsByStepMatrix1.Rows[0][11].ToString();
+
+                    Globals.FLAG_FAIL = true;
+                    StaticFunctions.RegisterUnit();
+                    goto End;
+                }
+
+                catch (Exception) 
+                {
+                    Globals.PROCESS = StepToCheck;
+                    Globals.STATUS = "MISSING PROCESS";
+                    Globals.DEFECT = "MISSING PROCESS";
+                    Globals.CRD = "MISSING PROCESS";
+                  
+                    StaticFunctions.RegisterUnit();
+                    goto End;
+                }
+
+            NEXT_PROCESS: { }
+
+            }
+
+            if (Globals.FLAG_FAIL) goto End;
+
+            Globals.PROCESS = "TODOS LOS PROCESOS OK";
+            Globals.STATUS = "TODOS LOS PROCESOS OK";
+            Globals.DEFECT = "TODOS LOS PROCESOS OK";
+            Globals.CRD = "TODOS LOS PROCESOS OK";
+            StaticFunctions.RegisterUnit();
+            StaticFunctions.NotifyOK();
+
+        End: { }
+            WriteDgv(DateTime.Now, Globals.SERIAL_NUMBER, Globals.PROCESS, Globals.CRD, Globals.DEFECT, Globals.STATUS);
+            CleanUP();
+            return "OK";
+        }
+
+
+
+        string MainFunction3() 
+        {
+            Globals.BUSY = true;
+
+            if (StaticFunctions.IsAlreadyRegister())
+            {
+                Thread.Sleep(3000);
+                WriteDgv(DateTime.Now, Globals.SERIAL_NUMBER, "UNIDAD YA REGISTRADA", "", "", "");
+                CleanUP();
+                return "OK";
+            }
+
+            DataSet _dsQuery = new MES.Service().SelectBySerialNumber(Globals.SERIAL_NUMBER);
+            Globals.CUSTOMER_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][2]);
+            Globals.WIP_ID = Convert.ToInt32(_dsQuery.Tables[0].Rows[0][0]);
+
+            _dsQuery = new MES.Service().BoardHistoryReport(Globals.SERIAL_NUMBER, Globals.CUSTOMER_ID);
+
+            DataTable EventsByStepMatrix1 = new DataTable();
+
+            foreach (string _Key in Globals.DATA_MATRIX)
+            {
+                bool result = false;
+                string StepToCheck = ConfigFiles.reader("DATA_MATRIX", _Key, Globals.CONFIG_FILE);
+                string TestType = "TEST";
+                string TestStatus = "Pass";
+
+                if (StepToCheck == "QC / BSI1" || StepToCheck == "QC / SMT FINAL INSP") TestType = "Movement Both";
+
+             
+                result = StaticMESFunctions.CheckPoint(_dsQuery, StepToCheck, TestType, TestStatus);
+                if (result) goto NEXT_PROCESS;
+
+
+                if(StepToCheck == "AOI / AOIB") 
+                {
+                    StepToCheck = "AOI / AOIINSPB";
+                    result = StaticMESFunctions.CheckPoint(_dsQuery, StepToCheck, TestType, TestStatus);
+                    if (result) goto NEXT_PROCESS;
+                }
+                
+                TestType = "Analysis";
+                TestStatus = "Confirmed";
+                var items = StaticMESFunctions.GetFailure(_dsQuery, StepToCheck, TestType, TestStatus);
+
+                if (items.Item1)
+                {
+                    Globals.PROCESS = items.Item2;
+                    Globals.STATUS = items.Item3;
+                    Globals.DEFECT = items.Item4;
+                    Globals.CRD = items.Item5;
+                    Globals.FLAG_FAIL = true;
+                    break;
+                }
+
+                TestType = "Analysis";
+                TestStatus = "Unconfirmed";
+                items = StaticMESFunctions.GetFailure(_dsQuery, StepToCheck, TestType, TestStatus);
+
+                if (items.Item1)
+                {
+                    Globals.PROCESS = items.Item2;
+                    Globals.STATUS = items.Item3;
+                    Globals.DEFECT = items.Item4;
+                    Globals.CRD = items.Item5;
+                    Globals.FLAG_FAIL = true;
+                    break;
+                }
+
+                TestType = "TEST";
+                TestStatus = "Fail";
+                items = StaticMESFunctions.GetFailure(_dsQuery, StepToCheck, TestType, TestStatus);
+
+                if (items.Item1)
+                {
+                    Globals.PROCESS = items.Item2;
+                    Globals.STATUS = items.Item3;
+                    Globals.DEFECT = items.Item5;
+                    Globals.CRD = items.Item4;
+                    Globals.FLAG_FAIL = true;
+                    break;
+                }
+
+                if (!items.Item1) 
+                {
+                    //MISSING PROCESS
+                    Globals.PROCESS = StepToCheck;
+                    Globals.STATUS = "MISSING PROCESS";
+                    Globals.DEFECT = "MISSING PROCESS";
+                    Globals.CRD = "MISSING PROCESS";
+                    Globals.FLAG_FAIL = true;
+                    break;
+                }
+  
+
+            NEXT_PROCESS: { }
+            }
+
+            if (!Globals.FLAG_FAIL) 
+            {
+                Globals.PROCESS = "TODOS LOS PROCESOS OK";
+                Globals.STATUS = "TODOS LOS PROCESOS OK";
+                Globals.DEFECT = "TODOS LOS PROCESOS OK";
+                Globals.CRD = "TODOS LOS PROCESOS OK";
+            }
+
+            StaticFunctions.RegisterUnit();
+            WriteDgv(DateTime.Now, Globals.SERIAL_NUMBER, Globals.PROCESS, Globals.CRD, Globals.DEFECT, Globals.STATUS);
+            CleanUP();
+            return "OK";
+        }
+
         void CleanUP() 
         {
             Globals.SERIAL_NUMBER = string.Empty;
@@ -325,8 +570,22 @@ namespace MRB_Review_System
             Globals.FLAG_FAIL = false;
             Globals.COUNT_MATRIX = 0;
             Globals.STEPS_MISSING = string.Empty;
-
+            Globals.BUSY = false;
             _TimerTrigger.Start();
+        }
+
+
+
+        private void WaitNMilliSeconds(int MilliSeconds)
+        {
+            if (MilliSeconds < 100) return;
+            DateTime _desired = DateTime.Now.AddMilliseconds(MilliSeconds);
+
+            while (DateTime.Now < _desired)
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                                                      new Action(delegate { }));
+            }
         }
 
         private void dgvData_LoadingRow(object sender, DataGridRowEventArgs e)
@@ -334,28 +593,33 @@ namespace MRB_Review_System
             var row = e.Row;
             MyData _myData = new MyData();
             _myData = (MyData)row.DataContext;
-            if (_myData.STATUS == "Fail" || _myData.STATUS == "FAIL") 
+
+            if (_myData.STATUS == "Confirmed" || _myData.STATUS == "Unconfirmed" || _myData.STATUS == "Fail")
             {
                 row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B71C1C")); //DEEP RED 900
                 row.Foreground = new SolidColorBrush(Colors.WhiteSmoke);
+                return;
             }
- 
-            if (_myData.PROCESS == "PROCESOS FALTANTES")
+
+            if (_myData.STATUS == "MISSING PROCESS")
             {
-                row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BF360C")); //DEEP ORANGE 900
+                row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b28900")); //DEEP ORANGE 900
                 row.Foreground = new SolidColorBrush(Colors.WhiteSmoke);
+                return;
             }
 
             if (_myData.PROCESS == "TODOS LOS PROCESOS OK") 
             {
                 row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1B5E20")); //DEEP GREEN 900
                 row.Foreground = new SolidColorBrush(Colors.WhiteSmoke);
+                return;
             }
 
             if (_myData.PROCESS == "UNIDAD YA REGISTRADA")
             {
                 row.Background = new SolidColorBrush(Colors.GhostWhite);
                 row.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#212121")); //DEEP GREEN 900 //GRAY 900
+                return;
             }
 
         }
@@ -422,26 +686,28 @@ namespace MRB_Review_System
                    
             if (Globals.DOCK_MENU) 
             {
-                Thickness _temp = dgvData.Margin;
-                _temp.Left = 160f;
-                dgvData.Margin = _temp;
+                //Thickness _temp = dgvData.Margin;
+                //_temp.Left = 160f;
+                //dgvData.Margin = _temp;
                 btnGetData.Visibility = Visibility.Visible;
                 btnGetDataAll.Visibility = Visibility.Visible;
                 btnCelanExcel.Visibility = Visibility.Visible;
+                btnFromFile.Visibility = Visibility.Visible;
 
                 Globals.DOCK_MENU = false;
-                DockMenu.Width = 160;
+                DockMenu.Width = 180;
                 return;
             }
 
             if (!Globals.DOCK_MENU) 
             {
-                Thickness _temp = dgvData.Margin;
-                _temp.Left = 0f;
-                dgvData.Margin = _temp;
+                //Thickness _temp = dgvData.Margin;
+                //_temp.Left = 0f;
+                //dgvData.Margin = _temp;
                 btnGetData.Visibility = Visibility.Hidden;
                 btnGetDataAll.Visibility = Visibility.Hidden;
                 btnCelanExcel.Visibility = Visibility.Hidden;
+                btnFromFile.Visibility = Visibility.Hidden;
 
                 Globals.DOCK_MENU = true;
                 DockMenu.Width = 0;
@@ -592,6 +858,66 @@ namespace MRB_Review_System
 
             t1.Start();
             t2.Start();
+        }
+
+        private void btnFromFile_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            openFileDialog.Filter = "Archive (*.xlsx)|*.xlsx";
+            openFileDialog.InitialDirectory = @"C:\";
+            openFileDialog.Title = "IMPORT FILE";
+            //openFileDialog.DefaultExt= "Archive(*.xlsx) | *.xlsx";
+
+            System.Windows.Forms.DialogResult dialogResult = openFileDialog.ShowDialog();
+
+
+            if(dialogResult == System.Windows.Forms.DialogResult.OK) 
+            {
+                string PathFile = openFileDialog.FileName;
+                KeyEventArgs _key = new KeyEventArgs(Keyboard.PrimaryDevice, Keyboard.PrimaryDevice.ActiveSource, 0, Key.Enter);
+
+            tryReadAgainAll:
+                DataTable dtQuery = ExcelFunctions.Excel_To_DataTable(PathFile, 0);
+                if (dtQuery == null) goto tryReadAgainAll;
+
+                ProBarTask.Visibility= Visibility.Visible;
+                ProBarTask.Value = 0;
+                ProBarTask.Maximum = dtQuery.Rows.Count;
+
+                btnMenu_Click(sender, e);
+
+                foreach(DataRow dr in dtQuery.Rows) 
+                {
+                    txtBoxScan.Text = dr[0].ToString();
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        ProBarTask.Value++;
+                    });
+
+
+
+                TryAgain:
+                    if (Globals.BUSY) goto TryAgain;
+
+
+                    try { txtBoxScan_KeyDown(sender, _key); }
+                    catch(Exception ex) { goto TryAgain; }
+                   
+                    WaitNSeconds(1);
+                }
+            }
+        }
+
+        private void WaitNSeconds(int segundos)
+        {
+            if (segundos < 1) return;
+            DateTime _desired = DateTime.Now.AddSeconds(segundos);
+            while (DateTime.Now < _desired)
+            {        
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                                                      new Action(delegate { }));
+            }
         }
     }
 

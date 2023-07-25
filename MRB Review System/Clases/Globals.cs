@@ -15,11 +15,27 @@ namespace MRB_Review_System
         private static string _DEFECT;
         private static string _STATUS;
         private static bool _FLAG_FAIL;
-  
+
 
         /// <summary>
         /// Variable to get or set Serial Number from Current Unit
         /// </summary>
+        /// 
+
+        private static bool _Busy = false;
+        public static bool BUSY
+        {
+            get
+            {
+                return _Busy;
+            }
+            set
+            {
+                _Busy = value;
+            }
+        }
+
+
         public static string SERIAL_NUMBER
         {
             get
